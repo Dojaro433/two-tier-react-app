@@ -54,7 +54,8 @@ jobs:
 
       - name: Update tag in Helm values.yaml
         run: |
-          sed -i 's/^\s*tag: .*/  tag: "'"${{ steps.get_tag.outputs.new_tag }}"'"' $HELM_VALUES_FILE
+          new_tag="${{ steps.get_tag.outputs.new_tag }}"
+          sed -i "s/^[[:space:]]*tag: .*/  tag: \"$new_tag\"/" $HELM_VALUES_FILE
 
       - name: Show updated values.yaml
         run: |
