@@ -1,0 +1,53 @@
+name: CI - Build and Push Docker Image
+
+on:
+  push:
+    paths:
+      - "frontend/backend/**"
+      - ".github/workflows/**"
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: vaibhs123/backend
+      HELM_VALUES_FILE: HELM/backend-chart/values.yaml
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build Docker image
+      run: |
+        cd frontend/backend
+        docker build -t $IMAGE_NAME:latest .
+
+    - name: Push image to Docker Hub
+      run: |
+        docker push $IMAGE_NAME:latest
+
+    - name: Update image tag in Helm values.yaml to 'latest'
+      run: |
+        sed -i 's/tag: .*/tag: latest/' $HELM_VALUES_FILE
+
+    - name: Commit and push updated values.yaml
+      env:
+        GIT_AUTH_TOKEN: ${{ secrets.GH_PAT }}
+      run: |
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git add $HELM_VALUES_FILE
+        git commit -m "Update image tag to latest after build" || echo "No changes to commit"
+        git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }} HEAD:main
+
+        git commit -m "Update image tag to latest after build" || echo "No changes to commit"
+        git push origin HEAD:main
