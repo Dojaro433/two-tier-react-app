@@ -40,9 +40,12 @@ jobs:
         sed -i 's/tag: .*/tag: latest/' $HELM_VALUES_FILE
 
     - name: Commit and push updated values.yaml
+      env:
+        GIT_AUTH_TOKEN: ${{ secrets.GH_PAT }}
       run: |
         git config user.name "github-actions"
         git config user.email "actions@github.com"
+        git remote set-url origin https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}
         git add $HELM_VALUES_FILE
-        git commit -m "Update image tag to latest after build"
-        git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }} HEAD:main
+        git commit -m "Update image tag to latest after build" || echo "No changes to commit"
+        git push origin HEAD:main
