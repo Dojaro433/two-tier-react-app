@@ -23,7 +23,7 @@ jobs:
       - name: Generate new image tag
         id: get_tag
         run: |
-          current_tag=$(grep 'tag:' $HELM_VALUES_FILE | awk '{print $2}')
+          current_tag=$(grep 'tag:' $HELM_VALUES_FILE | awk '{print $2}' | tr -d '"')
           if [[ "$current_tag" =~ ^[0-9]+$ ]]; then
             new_tag=$((current_tag + 1))
           else
@@ -54,7 +54,7 @@ jobs:
 
       - name: Update tag in Helm values.yaml
         run: |
-          sed -i 's/tag: .*/tag: '"${{ steps.get_tag.outputs.new_tag }}"'/' $HELM_VALUES_FILE
+          sed -i 's/^\s*tag: .*/  tag: "'"${{ steps.get_tag.outputs.new_tag }}"'"' $HELM_VALUES_FILE
 
       - name: Show updated values.yaml
         run: |
