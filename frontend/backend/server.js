@@ -7,7 +7,7 @@ const cors = require('cors');
 app.use(cors());
 
 app.get('/api', (req, res) => {
-  res.send('helm is deployed by using the Argocd is main CD for the purpose');
+  res.send('Argocd is the CI/CD toll for the deployment');
 });
 
 app.listen(port, () => {
